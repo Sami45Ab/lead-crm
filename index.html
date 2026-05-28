@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lead CRM Tool</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f5f5f3; color: #1a1a1a; font-size: 14px; line-height: 1.6; }
+  .app { max-width: 860px; margin: 0 auto; padding: 1.5rem 1rem; }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 1.5rem; display: flex; align-items: center; gap: 8px; }
+  .tabs { display: flex; gap: 4px; border-bottom: 1px solid #e0e0e0; margin-bottom: 1.25rem; }
+  .tab { padding: 8px 14px; font-size: 13px; font-weight: 500; color: #666; cursor: pointer; border: none; background: none; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: #1a1a1a; border-bottom-color: #1a1a1a; }
+  .page { display: none; } .page.active { display: block; }
+  .card { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 1.25rem; margin-bottom: 1rem; }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
+  label { font-size: 12px; color: #666; display: block; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; padding: 8px 10px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; font-family: inherit; background: #fff; color: #1a1a1a; outline: none; }
+  input:focus, select:focus, textarea:focus { border-color: #999; }
+  button { padding: 8px 14px; border: 1px solid #ccc; border-radius: 8px; font-size: 13px; font-family: inherit; background: #fff; color: #1a1a1a; cursor: pointer; transition: background .15s; }
+  button:hover { background: #f5f5f3; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: #1a1a1a; color: #fff; border-color: #1a1a1a; width: 100%; padding: 10px; font-weight: 500; }
+  .btn-primary:hover { background: #333; }
+  .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.25rem; }
+  .metric { background: #f5f5f3; border-radius: 8px; padding: 12px 14px; }
+  .metric-label { font-size: 12px; color: #666; margin-bottom: 4px; }
+  .metric-val { font-size: 22px; font-weight: 600; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 999px; font-weight: 500; }
+  .b-neu { background: #e6f1fb; color: #0c447c; }
+  .b-kontaktiert { background: #faeeda; color: #633806; }
+  .b-antwort { background: #eaf3de; color: #27500a; }
+  .b-abgelehnt { background: #fcebeb; color: #791f1f; }
+  .b-osm { background: #eaf3de; color: #27500a; }
+  .b-ki { background: #eeedfe; color: #3c3489; }
+  .b-branche { background: #f5f5f3; color: #666; border: 1px solid #e0e0e0; }
+  .lead-card { background: #fff; border: 1px solid #e8e8e8; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 10px; }
+  .lead-top { display: flex; align-items: flex-start; gap: 10px; }
+  .avatar { width: 36px; height: 36px; border-radius: 50%; background: #e6f1fb; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 11px; color: #0c447c; flex-shrink: 0; }
+  .lead-info { flex: 1; min-width: 0; }
+  .lead-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .lead-sub { font-size: 12px; color: #666; }
+  .lead-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .meta-i { font-size: 12px; color: #666; display: flex; align-items: center; gap: 4px; }
+  .lead-actions { display: flex; gap: 6px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #f0f0f0; flex-wrap: wrap; }
+  .lead-actions button { font-size: 11px; padding: 4px 10px; }
+  .notiz-box { margin-top: 8px; }
+  .filter-row { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
+  .filter-row input, .filter-row select { font-size: 12px; height: 34px; }
+  .hint { font-size: 11px; color: #666; background: #f5f5f3; border-radius: 8px; padding: 6px 10px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  .source-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .src-btn { padding: 7px 14px; font-size: 12px; font-weight: 500; }
+  .src-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
+  .progress-bar { height: 6px; background: #e8e8e8; border-radius: 999px; overflow: hidden; margin: 8px 0; }
+  .progress-fill { height: 100%; background: #378add; border-radius: 999px; transition: width .3s; }
+  .empty-state { text-align: center; padding: 2.5rem 1rem; color: #666; font-size: 13px; }
+  .spin { display: inline-block; width: 14px; height: 14px; border: 2px solid #ddd; border-top-color: #1a1a1a; border-radius: 50%; animation: spin .7s linear infinite; vertical-align: -3px; margin-right: 6px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .email-preview { background: #f5f5f3; border-radius: 8px; padding: 1rem; margin-top: 10px; font-size: 13px; white-space: pre-wrap; line-height: 1.6; }
+  .section-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+  a { color: #185fa5; }
+  .api-key-section { background: #fff8e6; border: 1px solid #f0d080; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .api-key-section p { font-size: 12px; color: #666; margin-top: 6px; }
+  @media (max-width: 600px) {
+    .row2 { grid-template-columns: 1fr; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1><i class="ti ti-users" style="font-size:22px"></i> Lead CRM Tool</h1>
+
+  <!-- API Key -->
+  <div class="api-key-section">
+    <div style="font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px"><i class="ti ti-key" style="font-size:14px;color:#ba7517"></i> Claude API-Key eingeben (einmalig)</div>
+    <p>Wird nur lokal in deinem Browser gespeichert. Kostenlos unter <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a></p>
+    <div style="display:flex;gap:8px;margin-top:8px">
+      <input type="password" id="api-key-input" placeholder="sk-ant-api03-..." style="flex:1"/>
+      <button onclick="saveApiKey()" style="white-space:nowrap"><i class="ti ti-check" style="margin-right:4px"></i>Speichern</button>
+    </div>
+    <div id="api-key-status" style="font-size:11px;margin-top:6px;color:#666"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="showTab('suche',this)"><i class="ti ti-search" style="margin-right:5px;font-size:13px"></i>Suche</button>
+    <button class="tab" onclick="showTab('leads',this)"><i class="ti ti-users" style="margin-right:5px;font-size:13px"></i>Leads <span id="leads-count" style="font-size:11px;background:#f0f0f0;padding:1px 6px;border-radius:999px;margin-left:3px">0</span></button>
+    <button class="tab" onclick="showTab('email',this)"><i class="ti ti-mail" style="margin-right:5px;font-size:13px"></i>E-Mail</button>
+    <button class="tab" onclick="showTab('stats',this)"><i class="ti ti-chart-bar" style="margin-right:5px;font-size:13px"></i>Übersicht</button>
+  </div>
+
+  <!-- SUCHE -->
+  <div id="tab-suche" class="page active">
+    <div class="card">
+      <div class="section-title"><i class="ti ti-sparkles" style="font-size:14px"></i>Quelle wählen</div>
+      <div class="source-toggle">
+        <button class="src-btn active" id="src-osm" onclick="setSource('osm')">
+          <i class="ti ti-map-pin" style="margin-right:5px;font-size:13px"></i>OpenStreetMap <span class="badge b-osm" style="margin-left:4px">Echte Daten</span>
+        </button>
+        <button class="src-btn" id="src-ki" onclick="setSource('ki')">
+          <i class="ti ti-robot" style="margin-right:5px;font-size:13px"></i>KI-Generierung <span class="badge b-ki" style="margin-left:4px">Musterdaten</span>
+        </button>
+      </div>
+      <div id="osm-info" class="hint"><i class="ti ti-check" style="font-size:13px;color:#1d9e75"></i>100% kostenlos · Kein API-Key · Echte Firmen aus OpenStreetMap</div>
+      <div id="ki-info" class="hint" style="display:none"><i class="ti ti-robot" style="font-size:13px;color:#534ab7"></i>KI erstellt realistische Musterdaten – Claude API-Key erforderlich</div>
+      <div class="row2">
+        <div>
+          <label>Branche</label>
+          <select id="s-branche">
+            <option value="">Wählen...</option>
+            <option value="nursing_home">Pflegeheim / Seniorenheim</option>
+            <option value="restaurant">Gastronomie / Restaurant</option>
+            <option value="retail">Einzelhandel / Verkauf</option>
+            <option value="bakery">Bäckerei</option>
+            <option value="construction">Bau / Handwerk</option>
+            <option value="hospital">Krankenhaus / Klinik</option>
+            <option value="hotel">Hotel</option>
+            <option value="supermarket">Supermarkt / Lebensmittel</option>
+          </select>
+        </div>
+        <div>
+          <label>Bundesland</label>
+          <select id="s-bundesland">
+            <option value="">Wählen...</option>
+            <option>Baden-Württemberg</option><option>Bayern</option><option>Berlin</option>
+            <option>Brandenburg</option><option>Bremen</option><option>Hamburg</option>
+            <option>Hessen</option><option>Mecklenburg-Vorpommern</option><option>Niedersachsen</option>
+            <option>Nordrhein-Westfalen</option><option>Rheinland-Pfalz</option><option>Saarland</option>
+            <option>Sachsen</option><option>Sachsen-Anhalt</option><option>Schleswig-Holstein</option>
+            <option>Thüringen</option>
+          </select>
+        </div>
+      </div>
+      <div class="row2">
+        <div>
+          <label id="anzahl-label">Anzahl Leads (max. 500 bei OSM)</label>
+          <input type="number" id="s-anzahl" value="50" min="1" max="500"/>
+        </div>
+        <div>
+          <label>Unternehmensgröße</label>
+          <select id="s-groesse"><option>Alle</option><option>Klein (1–10 MA)</option><option>Mittel (11–50 MA)</option><option>Groß (50+ MA)</option></select>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label style="font-size:12px;font-weight:600;color:#1a1a1a;margin-bottom:8px;display:block">Suche gezielt nach</label>
+        <div style="display:flex;gap:12px;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;font-weight:400;color:#1a1a1a">
+            <input type="checkbox" id="chk-personal" checked style="width:15px;height:15px"> Firmen die Personal suchen
+          </label>
+          <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;margin:0;font-weight:400;color:#1a1a1a">
+            <input type="checkbox" id="chk-azubi" checked style="width:15px;height:15px"> Firmen die Azubis suchen
+          </label>
+        </div>
+      </div>
+      <button class="btn-primary" id="such-btn" onclick="doSearch()">
+        <i class="ti ti-player-play" style="margin-right:5px"></i>Echte Leads laden
+      </button>
+      <div id="progress-wrap" style="display:none;margin-top:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:2px">
+          <span id="progress-label">Lade...</span><span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      </div>
+    </div>
+    <div id="search-results"></div>
+  </div>
+
+  <!-- LEADS -->
+  <div id="tab-leads" class="page">
+    <div class="filter-row">
+      <input type="text" id="f-search" placeholder="Firma oder Name..." oninput="renderLeads()" style="flex:1;min-width:120px"/>
+      <select id="f-status" onchange="renderLeads()" style="width:auto">
+        <option value="">Alle Status</option>
+        <option>Neu</option><option>Kontaktiert</option><option>Antwort erhalten</option><option>Abgelehnt</option>
+      </select>
+      <button onclick="exportCSV()" style="font-size:12px;padding:5px 12px;white-space:nowrap"><i class="ti ti-download" style="margin-right:4px"></i>CSV Export</button>
+      <button onclick="clearAll()" style="font-size:12px;padding:5px 12px;color:#a32d2d;white-space:nowrap"><i class="ti ti-trash" style="margin-right:4px"></i>Alle löschen</button>
+    </div>
+    <div id="leads-list"></div>
+  </div>
+
+  <!-- EMAIL -->
+  <div id="tab-email" class="page">
+    <div class="card">
+      <div class="section-title"><i class="ti ti-mail" style="font-size:14px"></i>E-Mail-Vorlage generieren</div>
+      <div class="hint"><i class="ti ti-key" style="font-size:13px;color:#ba7517"></i>Claude API-Key oben eintragen für KI-Vorlagen</div>
+      <div class="row2">
+        <div><label>Branche</label>
+          <select id="e-branche">
+            <option>Pflegeheim / Seniorenheim</option><option>Gastronomie / Restaurant</option>
+            <option>Bäckerei</option><option>Bau / Handwerk</option><option>Einzelhandel / Verkauf</option>
+          </select>
+        </div>
+        <div><label>Ton</label>
+          <select id="e-ton"><option>Professionell</option><option>Freundlich & locker</option><option>Direkt & knapp</option></select>
+        </div>
+      </div>
+      <div style="margin-bottom:12px">
+        <label>Mein Angebot / Dienstleistung</label>
+        <input type="text" id="e-angebot" placeholder="z.B. Personalvermittlung, Software, Reinigung..."/>
+      </div>
+      <div style="margin-bottom:12px">
+        <label>Eigener Name / Firma</label>
+        <input type="text" id="e-name" placeholder="z.B. Max Muster, Muster GmbH..."/>
+      </div>
+      <button class="btn-primary" id="email-btn" onclick="genEmail()">
+        <i class="ti ti-sparkles" style="margin-right:5px"></i>Vorlage generieren
+      </button>
+      <div id="email-out"></div>
+    </div>
+  </div>
+
+  <!-- STATS -->
+  <div id="tab-stats" class="page">
+    <div class="metrics">
+      <div class="metric"><div class="metric-label">Leads gesamt</div><div class="metric-val" id="m-total">0</div></div>
+      <div class="metric"><div class="metric-label">Kontaktiert</div><div class="metric-val" id="m-kont">0</div></div>
+      <div class="metric"><div class="metric-label">Antwort erhalten</div><div class="metric-val" id="m-ant">0</div></div>
+      <div class="metric"><div class="metric-label">Abgelehnt</div><div class="metric-val" id="m-abg">0</div></div>
+    </div>
+    <div class="card" id="stats-branches"></div>
+  </div>
+</div>
+
+<script>
+let leads = [];
+let currentSource = 'osm';
+const STORAGE_KEY = 'crm_leads_local_v1';
+
+const OSM_TAGS = {
+  'nursing_home':[['amenity','nursing_home'],['amenity','social_facility'],['social_facility','nursing_home']],
+  'restaurant':[['amenity','restaurant'],['amenity','cafe'],['amenity','fast_food']],
+  'retail':[['shop','clothes'],['shop','electronics'],['shop','furniture'],['shop','hardware']],
+  'bakery':[['shop','bakery']],
+  'construction':[['craft','construction'],['craft','carpenter'],['craft','electrician'],['craft','plumber']],
+  'hospital':[['amenity','hospital'],['amenity','clinic']],
+  'hotel':[['tourism','hotel'],['tourism','guest_house']],
+  'supermarket':[['shop','supermarket'],['shop','convenience']]
+};
+
+const BRANCHE_LABELS = {
+  'nursing_home':'Pflegeheim / Seniorenheim','restaurant':'Gastronomie / Restaurant',
+  'retail':'Einzelhandel / Verkauf','bakery':'Bäckerei','construction':'Bau / Handwerk',
+  'hospital':'Krankenhaus / Klinik','hotel':'Hotel','supermarket':'Supermarkt / Lebensmittel'
+};
+
+const BUNDESLAND_BBOX = {
+  'Baden-Württemberg':'47.5,7.5,49.8,10.5','Bayern':'47.3,9.0,50.6,13.9',
+  'Berlin':'52.3,13.1,52.7,13.8','Brandenburg':'51.4,11.3,53.6,14.8',
+  'Bremen':'53.0,8.5,53.2,8.9','Hamburg':'53.4,9.7,53.7,10.3',
+  'Hessen':'49.4,7.8,51.7,10.2','Mecklenburg-Vorpommern':'53.1,10.6,54.7,14.4',
+  'Niedersachsen':'51.3,6.7,53.9,11.6','Nordrhein-Westfalen':'50.3,5.9,52.5,9.5',
+  'Rheinland-Pfalz':'48.9,6.1,50.9,8.5','Saarland':'49.1,6.3,49.7,7.4',
+  'Sachsen':'50.2,11.9,51.7,15.0','Sachsen-Anhalt':'51.0,10.6,53.1,13.2',
+  'Schleswig-Holstein':'53.4,7.9,55.1,11.3','Thüringen':'50.2,9.9,51.7,12.7'
+};
+
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if(!key) return;
+  localStorage.setItem('claude_api_key', key);
+  document.getElementById('api-key-status').innerHTML = '<i class="ti ti-check" style="color:#1d9e75;margin-right:4px"></i>API-Key gespeichert';
+  document.getElementById('api-key-input').value = '••••••••••••••••';
+}
+
+function getApiKey() { return localStorage.getItem('claude_api_key') || ''; }
+
+function loadLeads() {
+  try { const d = localStorage.getItem(STORAGE_KEY); if(d) leads = JSON.parse(d); } catch(e){ leads=[]; }
+  const saved = localStorage.getItem('claude_api_key');
+  if(saved) { document.getElementById('api-key-status').innerHTML = '<i class="ti ti-check" style="color:#1d9e75;margin-right:4px"></i>API-Key gespeichert'; document.getElementById('api-key-input').placeholder = '••• bereits gespeichert •••'; }
+  updateUI();
+}
+
+function saveLeads() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(leads)); } catch(e){}
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('leads-count').textContent = leads.length.toLocaleString('de-DE');
+  renderLeads(); updateStats();
+}
+
+function showTab(t, btn) {
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+  if(btn) btn.classList.add('active');
+  if(t==='stats') updateStats();
+}
+
+function setSource(src) {
+  currentSource = src;
+  document.querySelectorAll('.src-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('src-'+src).classList.add('active');
+  document.getElementById('osm-info').style.display = src==='osm'?'flex':'none';
+  document.getElementById('ki-info').style.display = src==='ki'?'flex':'none';
+  document.getElementById('such-btn').innerHTML = src==='osm'
+    ? '<i class="ti ti-player-play" style="margin-right:5px"></i>Echte Leads laden'
+    : '<i class="ti ti-sparkles" style="margin-right:5px"></i>KI-Leads generieren';
+  const el = document.getElementById('s-anzahl');
+  el.max = src==='osm' ? 500 : 10000;
+  document.getElementById('anzahl-label').textContent = src==='osm' ? 'Anzahl Leads (max. 500 bei OSM)' : 'Anzahl Leads (1 – 10.000)';
+}
+
+function getInitials(n){ return (n||'?').split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2); }
+function statusBadge(s){
+  const map={'Neu':'b-neu','Kontaktiert':'b-kontaktiert','Antwort erhalten':'b-antwort','Abgelehnt':'b-abgelehnt'};
+  return `<span class="badge ${map[s]||'b-neu'}">${s||'Neu'}</span>`;
+}
+
+async function fetchOSM(brancheKey, bundesland, limit) {
+  const bbox = BUNDESLAND_BBOX[bundesland];
+  if(!bbox) throw new Error('Bundesland nicht gefunden');
+  const tags = OSM_TAGS[brancheKey]||[];
+  const tagQ = tags.map(([k,v])=>`node["${k}"="${v}"](${bbox});way["${k}"="${v}"](${bbox});`).join('\n');
+  const query = `[out:json][timeout:30];(\n${tagQ}\n);out center ${limit};`;
+  const resp = await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(query)});
+  const data = await resp.json();
+  return (data.elements||[]).slice(0,limit).map(el=>{
+    const t=el.tags||{};
+    return {
+      firma: t.name||t['name:de']||'Unbekannt',
+      branche: BRANCHE_LABELS[brancheKey]||brancheKey,
+      ansprechpartner: t['contact:person']||t.operator||'Allgemeiner Kontakt',
+      position: t['contact:person']?'Leitung':'Allgemeiner Kontakt',
+      email: t.email||t['contact:email']||'',
+      telefon: t.phone||t['contact:phone']||t['contact:mobile']||'',
+      website: t.website||t['contact:website']||'',
+      adresse: [t['addr:street'],t['addr:housenumber'],t['addr:postcode'],t['addr:city']].filter(Boolean).join(' '),
+      bundesland, stadt: t['addr:city']||'', groesse:'', quelle:'OpenStreetMap',
+      status:'Neu', notiz:'', addedAt:Date.now()
+    };
+  }).filter(l=>l.firma!=='Unbekannt');
+}
+
+function setProgress(label, pct) {
+  document.getElementById('progress-label').textContent = label;
+  document.getElementById('progress-pct').textContent = pct+'%';
+  document.getElementById('progress-fill').style.width = pct+'%';
+}
+
+async function doSearch() {
+  const branche = document.getElementById('s-branche').value;
+  const bundesland = document.getElementById('s-bundesland').value;
+  const anzahl = parseInt(document.getElementById('s-anzahl').value)||50;
+  if(!branche||!bundesland){ alert('Bitte Branche und Bundesland auswählen.'); return; }
+  const btn = document.getElementById('such-btn');
+  btn.innerHTML = '<span class="spin"></span>Läuft...'; btn.disabled = true;
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('search-results').innerHTML = '';
+
+  if(currentSource==='osm') {
+    setProgress('Anfrage an OpenStreetMap...', 20);
+    try {
+      const results = await fetchOSM(branche, bundesland, anzahl);
+      setProgress('Verarbeite Daten...', 80);
+      if(!results.length) {
+        document.getElementById('search-results').innerHTML = '<div class="empty-state"><i class="ti ti-map-off" style="font-size:28px;display:block;margin-bottom:8px"></i>Keine Einträge gefunden.<br><small>Tipp: Wechsle zu KI-Generierung.</small></div>';
+      } else {
+        leads = [...results,...leads]; saveLeads();
+        setProgress('Fertig!', 100);
+        showResults(results,'OpenStreetMap');
+      }
+    } catch(e) {
+      document.getElementById('search-results').innerHTML = '<div class="empty-state"><i class="ti ti-wifi-off" style="font-size:28px;display:block;margin-bottom:8px"></i>Verbindungsfehler. Bitte erneut versuchen.</div>';
+    }
+    btn.innerHTML = '<i class="ti ti-player-play" style="margin-right:5px"></i>Echte Leads laden';
+  } else {
+    const apiKey = getApiKey();
+    if(!apiKey) { alert('Bitte zuerst Claude API-Key eintragen.'); btn.innerHTML='<i class="ti ti-sparkles" style="margin-right:5px"></i>KI-Leads generieren'; btn.disabled=false; return; }
+    const groesse = document.getElementById('s-groesse').value;
+    const personal = document.getElementById('chk-personal').checked;
+    const azubi = document.getElementById('chk-azubi').checked;
+    const BATCH=50; const batches=Math.ceil(anzahl/BATCH); let allNew=[];
+    for(let b=1;b<=batches;b++){
+      const bSize=Math.min(BATCH,anzahl-(b-1)*BATCH);
+      setProgress(`KI-Batch ${b} von ${batches}...`,Math.round((b-1)/batches*100));
+      const prompt=`Erstelle ${bSize} realistische Firmen-Leads (Batch ${b}).\nBranche: ${BRANCHE_LABELS[branche]||branche}, Bundesland: ${bundesland}, Größe: ${groesse}\n${personal?'- Sucht Personal':''} ${azubi?'- Sucht Azubis':''}\nAnsprechpartner: bevorzugt Geschäftsführer/Einrichtungsleitung, sonst allgemeiner Kontakt.\nNUR JSON-Array:\n[{"firma":"...","branche":"${BRANCHE_LABELS[branche]||branche}","ansprechpartner":"...","position":"...","email":"...","telefon":"...","bundesland":"${bundesland}","stadt":"...","groesse":"...","suchtPersonal":true,"suchtAzubi":false,"notiz":"...","quelle":"KI"}]`;
+      try {
+        const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:1500,messages:[{role:"user",content:prompt}]})});
+        const d=await r.json();
+        const raw=d.content.map(i=>i.text||'').join('').replace(/```json|```/g,'').trim();
+        const batch=JSON.parse(raw);
+        batch.forEach(l=>{l.status='Neu';l.addedAt=Date.now();});
+        allNew=[...allNew,...batch];
+      } catch(e){break;}
+    }
+    leads=[...allNew,...leads]; saveLeads();
+    setProgress('Fertig!',100);
+    showResults(allNew,'KI');
+    btn.innerHTML='<i class="ti ti-sparkles" style="margin-right:5px"></i>KI-Leads generieren';
+  }
+  btn.disabled=false;
+}
+
+function showResults(results, quelle) {
+  const area = document.getElementById('search-results');
+  const qBadge = quelle==='OpenStreetMap' ? '<span class="badge b-osm" style="margin-left:6px">OpenStreetMap</span>' : '<span class="badge b-ki" style="margin-left:6px">KI-Daten</span>';
+  area.innerHTML = `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+    <span style="font-size:13px;color:#666">${results.length.toLocaleString('de-DE')} Leads geladen ${qBadge}</span>
+    <button onclick="showTab('leads',document.querySelectorAll('.tab')[1])" style="font-size:12px;padding:5px 10px">Alle ansehen</button>
+  </div>` + results.slice(0,5).map(l=>`<div class="lead-card">
+    <div class="lead-top">
+      <div class="avatar">${getInitials(l.firma)}</div>
+      <div class="lead-info"><div class="lead-name">${l.firma}</div><div class="lead-sub">${l.ansprechpartner} · ${l.position}</div></div>
+      <span class="badge b-branche">${l.bundesland}</span>
+    </div>
+    <div class="lead-meta">
+      ${l.email?`<span class="meta-i"><i class="ti ti-mail" style="font-size:13px"></i>${l.email}</span>`:''}
+      ${l.telefon?`<span class="meta-i"><i class="ti ti-phone" style="font-size:13px"></i>${l.telefon}</span>`:''}
+      ${l.adresse?`<span class="meta-i"><i class="ti ti-map-pin" style="font-size:13px"></i>${l.adresse}</span>`:''}
+      ${l.website?`<span class="meta-i"><i class="ti ti-world" style="font-size:13px"></i><a href="${l.website}" target="_blank">${l.website.replace(/^https?:\/\//,'').slice(0,30)}</a></span>`:''}
+    </div>
+  </div>`).join('') + (results.length>5?`<div style="text-align:center;padding:.75rem;font-size:12px;color:#666">+ ${(results.length-5).toLocaleString('de-DE')} weitere im Tab "Leads"</div>`:'');
+}
+
+function renderLeads() {
+  const search=(document.getElementById('f-search')||{value:''}).value.toLowerCase();
+  const st=(document.getElementById('f-status')||{value:''}).value;
+  const filtered=leads.filter(l=>{
+    if(search&&!((l.firma||'').toLowerCase().includes(search)||(l.ansprechpartner||'').toLowerCase().includes(search))) return false;
+    if(st&&(l.status||'Neu')!==st) return false;
+    return true;
+  });
+  const el=document.getElementById('leads-list');
+  if(!el) return;
+  if(!filtered.length){ el.innerHTML='<div class="empty-state"><i class="ti ti-inbox" style="font-size:28px;display:block;margin-bottom:8px"></i>Noch keine Leads.</div>'; return; }
+  const shown=filtered.slice(0,100); const rest=filtered.length-shown.length;
+  el.innerHTML=shown.map(l=>{
+    const idx=leads.indexOf(l);
+    const qBadge=l.quelle==='OpenStreetMap'?'<span class="badge b-osm" style="font-size:10px">OSM</span>':'<span class="badge b-ki" style="font-size:10px">KI</span>';
+    return `<div class="lead-card">
+      <div class="lead-top">
+        <div class="avatar">${getInitials(l.firma)}</div>
+        <div class="lead-info"><div class="lead-name">${l.firma}</div><div class="lead-sub">${l.ansprechpartner} · ${l.position||''}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">${statusBadge(l.status||'Neu')}${qBadge}</div>
+      </div>
+      <div class="lead-meta">
+        ${l.email?`<span class="meta-i"><i class="ti ti-mail" style="font-size:13px"></i>${l.email}</span>`:''}
+        ${l.telefon?`<span class="meta-i"><i class="ti ti-phone" style="font-size:13px"></i>${l.telefon}</span>`:''}
+        ${(l.adresse||l.stadt)?`<span class="meta-i"><i class="ti ti-map-pin" style="font-size:13px"></i>${l.adresse||l.stadt}</span>`:''}
+        ${l.website?`<span class="meta-i"><i class="ti ti-world" style="font-size:13px"></i><a href="${l.website}" target="_blank">${l.website.replace(/^https?:\/\//,'').slice(0,25)}</a></span>`:''}
+      </div>
+      <div class="notiz-box"><textarea rows="2" placeholder="Notiz..." onblur="saveNote(${idx},this.value)">${l.notiz||''}</textarea></div>
+      <div class="lead-actions">
+        <select onchange="setStatus(${idx},this.value)" style="font-size:11px;padding:3px 6px;height:28px;width:auto">
+          ${['Neu','Kontaktiert','Antwort erhalten','Abgelehnt'].map(s=>`<option ${(l.status||'Neu')===s?'selected':''}>${s}</option>`).join('')}
+        </select>
+        <button onclick="removeLead(${idx})" style="font-size:11px;padding:4px 10px;color:#a32d2d"><i class="ti ti-trash"></i></button>
+      </div>
+    </div>`;
+  }).join('')+(rest>0?`<div style="text-align:center;padding:1rem;font-size:12px;color:#666">+ ${rest.toLocaleString('de-DE')} weitere – nutze Filter oder CSV</div>`:'');
+}
+
+function setStatus(idx,val){ leads[idx].status=val; saveLeads(); }
+function saveNote(idx,val){ leads[idx].notiz=val; saveLeads(); }
+function removeLead(idx){ if(confirm('Lead löschen?')){ leads.splice(idx,1); saveLeads(); } }
+function clearAll(){ if(confirm('Alle Leads löschen?')){ leads=[]; saveLeads(); } }
+
+function updateStats(){
+  const total=leads.length;
+  document.getElementById('m-total').textContent=total.toLocaleString('de-DE');
+  document.getElementById('m-kont').textContent=leads.filter(l=>(l.status||'Neu')==='Kontaktiert').length.toLocaleString('de-DE');
+  document.getElementById('m-ant').textContent=leads.filter(l=>(l.status||'Neu')==='Antwort erhalten').length.toLocaleString('de-DE');
+  document.getElementById('m-abg').textContent=leads.filter(l=>(l.status||'Neu')==='Abgelehnt').length.toLocaleString('de-DE');
+  const byB={}; leads.forEach(l=>{ const b=l.branche||'Sonstige'; byB[b]=(byB[b]||0)+1; });
+  const el=document.getElementById('stats-branches');
+  if(!el) return;
+  if(!Object.keys(byB).length){ el.innerHTML='<div style="font-size:13px;color:#666">Noch keine Daten.</div>'; return; }
+  el.innerHTML='<div style="font-size:13px;font-weight:600;margin-bottom:12px">Leads nach Branche</div>'+
+    Object.entries(byB).sort((a,b)=>b[1]-a[1]).map(([br,cnt])=>{
+      const pct=total?Math.round(cnt/total*100):0;
+      return `<div style="margin-bottom:10px">
+        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px"><span>${br}</span><span style="color:#666">${cnt.toLocaleString('de-DE')} (${pct}%)</span></div>
+        <div style="height:6px;background:#e8e8e8;border-radius:999px;overflow:hidden"><div style="height:100%;width:${pct}%;background:#378add;border-radius:999px"></div></div>
+      </div>`;
+    }).join('');
+}
+
+async function genEmail(){
+  const apiKey = getApiKey();
+  if(!apiKey){ alert('Bitte zuerst Claude API-Key eintragen.'); return; }
+  const btn=document.getElementById('email-btn');
+  btn.innerHTML='<span class="spin"></span>Generiere...'; btn.disabled=true;
+  try{
+    const r=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",headers:{"Content-Type":"application/json","x-api-key":apiKey,"anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},body:JSON.stringify({model:"claude-sonnet-4-20250514",max_tokens:600,messages:[{role:"user",content:`Schreibe eine professionelle Kaltakquise-E-Mail auf Deutsch.\nBranche: ${document.getElementById('e-branche').value}, Ton: ${document.getElementById('e-ton').value}, Angebot: ${document.getElementById('e-angebot').value||'nicht angegeben'}, Absender: ${document.getElementById('e-name').value||'[Dein Name]'}\nAdressiert an Geschäftsführer oder Einrichtungsleitung. Kurz, überzeugend. Kein Markdown.`}]})});
+    const d=await r.json();
+    const txt=d.content.map(i=>i.text||'').join('');
+    document.getElementById('email-out').innerHTML=`<div class="email-preview">${txt}</div><button onclick="navigator.clipboard.writeText(this.previousElementSibling.textContent)" style="font-size:12px;padding:5px 10px;margin-top:8px"><i class="ti ti-copy" style="margin-right:4px"></i>Kopieren</button>`;
+  }catch(e){ document.getElementById('email-out').innerHTML='<div style="font-size:12px;color:#666;margin-top:8px">Fehler. API-Key prüfen.</div>'; }
+  btn.innerHTML='<i class="ti ti-sparkles" style="margin-right:5px"></i>Vorlage generieren'; btn.disabled=false;
+}
+
+function exportCSV(){
+  if(!leads.length){ alert('Keine Leads zum Exportieren.'); return; }
+  const h=['Firma','Branche','Ansprechpartner','Position','E-Mail','Telefon','Adresse','Bundesland','Stadt','Website','Quelle','Status','Notiz'];
+  const rows=leads.map(l=>[l.firma,l.branche,l.ansprechpartner,l.position,l.email,l.telefon,l.adresse||'',l.bundesland||'',l.stadt||'',l.website||'',l.quelle||'',l.status||'Neu',l.notiz].map(v=>`"${(v||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv=[h.join(','),...rows].join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+  a.download='leads_export.csv'; a.click();
+}
+
+loadLeads();
+</script>
+</body>
+</html>
