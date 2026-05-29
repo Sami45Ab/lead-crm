@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Mail Sammler</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.app{max-width:860px;margin:0 auto;padding:1.5rem 1rem}
+h1{font-size:20px;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
+.card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+label{font-size:12px;color:#666;display:block;margin-bottom:4px;font-weight:500}
+input,select{width:100%;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;font-family:inherit;outline:none}
+input:focus,select:focus{border-color:#1a1a1a}
+button{padding:9px 16px;border:1px solid #ccc;border-radius:8px;font-size:13px;font-family:inherit;background:#fff;color:#1a1a1a;cursor:pointer}
+button:hover{background:#f5f5f3}
+button:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:#1a1a1a;color:#fff;border-color:#1a1a1a;width:100%;padding:12px;font-weight:600;font-size:14px}
+.btn-primary:hover{background:#333}
+.progress-bar{height:8px;background:#e8e8e8;border-radius:999px;overflow:hidden;margin:10px 0}
+.progress-fill{height:100%;background:#1a1a1a;border-radius:999px;transition:width .3s}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.stat{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-size:28px;font-weight:700;color:#1a1a1a}
+.stat-label{font-size:12px;color:#666;margin-top:2px}
+.email-table{width:100%;border-collapse:collapse}
+.email-table th{background:#f5f5f3;padding:10px 14px;text-align:left;font-size:12px;font-weight:600;color:#666;border-bottom:1px solid #e8e8e8}
+.email-table td{padding:10px 14px;font-size:13px;border-bottom:1px solid #f0f0f0}
+.email-table tr:hover td{background:#fafafa}
+.badge-new{background:#eaf3de;color:#27500a;font-size:11px;padding:2px 7px;border-radius:999px;font-weight:500}
+.badge-dup{background:#f5f5f3;color:#999;font-size:11px;padding:2px 7px;border-radius:999px}
+.empty{text-align:center;padding:3rem;color:#999;font-size:13px}
+.log{font-size:12px;color:#666;padding:8px 12px;background:#f5f5f3;border-radius:8px;margin-top:8px;min-height:36px}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid #ddd;border-top-color:#1a1a1a;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.hint{font-size:11px;color:#666;background:#f0f7ff;border:1px solid #c8e0f8;border-radius:8px;padding:8px 12px;margin-bottom:12px}
+@media(max-width:600px){.row2{grid-template-columns:1fr}.stat-row{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1><i class="ti ti-mail-search" style="font-size:24px"></i> E-Mail Sammler für Deutschland</h1>
+
+<!-- Suche -->
+<div class="card">
+  <div style="font-size:14px;font-weight:600;margin-bottom:12px"><i class="ti ti-settings" style="margin-right:6px"></i>Suche konfigurieren</div>
+  <div class="row2">
+    <div><label>Branche</label>
+      <select id="s-branche">
+        <option value="">Wählen...</option>
+        <option value="nursing_home">Pflegeheim / Seniorenheim</option>
+        <option value="restaurant">Gastronomie / Restaurant</option>
+        <option value="retail">Einzelhandel / Verkauf</option>
+        <option value="bakery">Bäckerei</option>
+        <option value="construction">Bau / Handwerk</option>
+        <option value="hospital">Krankenhaus / Klinik</option>
+        <option value="hotel">Hotel</option>
+        <option value="supermarket">Supermarkt</option>
+        <option value="logistics">Logistik / Spedition</option>
+        <option value="it">IT / Software</option>
+        <option value="transport">Bus- & LKW / Transport</option>
+        <option value="mechatroniker">Mechatroniker / Elektroniker</option>
+        <option value="bau">Bau / Baugewerbe</option>
+      </select>
+    </div>
+    <div><label>Bundesland</label>
+      <select id="s-bundesland">
+        <option value="">Wählen...</option>
+        <option>Baden-Württemberg</option><option>Bayern</option><option>Berlin</option>
+        <option>Brandenburg</option><option>Bremen</option><option>Hamburg</option>
+        <option>Hessen</option><option>Mecklenburg-Vorpommern</option><option>Niedersachsen</option>
+        <option>Nordrhein-Westfalen</option><option>Rheinland-Pfalz</option><option>Saarland</option>
+        <option>Sachsen</option><option>Sachsen-Anhalt</option><option>Schleswig-Holstein</option>
+        <option>Thüringen</option><option>Deutschlandweit</option>
+      </select>
+    </div>
+  </div>
+  <div class="row2">
+    <div><label>Anzahl E-Mails</label>
+      <select id="s-anzahl">
+        <option value="50">50 E-Mails (schnell ~5 Min)</option>
+        <option value="100" selected>100 E-Mails (~10 Min)</option>
+        <option value="200">200 E-Mails (~20 Min)</option>
+        <option value="500">500 E-Mails (Nacht-Modus ~45 Min)</option>
+      </select>
+    </div>
+    <div><label>Quellen</label>
+      <select id="s-quelle">
+        <option value="osm">OpenStreetMap (schnell)</option>
+        <option value="beide">OSM + 20 Verzeichnisse (mehr E-Mails)</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Tag/Nacht Modus -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+    <div id="modus-tag" onclick="setModus('tag')" style="padding:12px;border:2px solid #1a1a1a;border-radius:10px;cursor:pointer;text-align:center;background:#1a1a1a;color:#fff">
+      <div style="font-size:20px">☀️</div>
+      <div style="font-weight:600;font-size:13px;margin-top:4px">Tag-Modus</div>
+      <div style="font-size:11px;opacity:.8;margin-top:2px">50 oder 100 E-Mails</div>
+    </div>
+    <div id="modus-nacht" onclick="setModus('nacht')" style="padding:12px;border:2px solid #e0e0e0;border-radius:10px;cursor:pointer;text-align:center;background:#fff;color:#1a1a1a">
+      <div style="font-size:20px">🌙</div>
+      <div style="font-weight:600;font-size:13px;margin-top:4px">Nacht-Modus</div>
+      <div style="font-size:11px;color:#666;margin-top:2px">500 E-Mails über Nacht</div>
+    </div>
+  </div>
+  <div class="hint"><i class="ti ti-info-circle" style="margin-right:5px;font-size:13px"></i>Bereits gesammelte E-Mails werden automatisch übersprungen – nie doppelt!</div>
+  <button class="btn-primary" id="start-btn" onclick="startSuche()">☀️ Tag-Suche starten</button>
+  <div id="progress-wrap" style="display:none;margin-top:12px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:3px">
+      <span id="prog-label">Starte...</span><span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="log" id="log-text">Initialisiere...</div>
+  </div>
+</div>
+
+<!-- Stats -->
+<div class="stat-row">
+  <div class="stat"><div class="stat-val" id="st-total">0</div><div class="stat-label">E-Mails gesamt</div></div>
+  <div class="stat"><div class="stat-val" id="st-heute">0</div><div class="stat-label">Heute gesammelt</div></div>
+  <div class="stat"><div class="stat-val" id="st-dup">0</div><div class="stat-label">Duplikate übersprungen</div></div>
+</div>
+
+<!-- Ergebnisse -->
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <div style="font-size:14px;font-weight:600"><i class="ti ti-list" style="margin-right:6px"></i>Gesammelte E-Mails</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="f-search" placeholder="Suchen..." oninput="renderTable()" style="width:160px;height:34px;font-size:12px"/>
+      <button onclick="exportCSV()" style="font-size:12px;padding:5px 12px;background:#eaf3de;color:#27500a;border-color:#a8dfc0"><i class="ti ti-download" style="margin-right:4px"></i>CSV Export</button>
+      <button onclick="clearAll()" style="font-size:12px;padding:5px 12px;color:#a32d2d"><i class="ti ti-trash" style="margin-right:4px"></i>Alle löschen</button>
+    </div>
+  </div>
+  <div id="table-wrap">
+    <div class="empty"><i class="ti ti-mail" style="font-size:32px;display:block;margin-bottom:8px;color:#ccc"></i>Noch keine E-Mails gesammelt.<br>Wähle Branche + Bundesland und starte die Suche!</div>
+  </div>
+</div>
+</div>
+
+<script>
+const STORAGE_KEY = 'email_collector_v1';
+const STORAGE_META = 'email_collector_meta_v1';
+const PROXIES = ['https://api.allorigins.win/get?url=', 'https://corsproxy.io/?'];
+
+let emails = []; // [{firma, email, branche, bundesland, datum}]
+let meta = {heute: 0, dupSkipped: 0, heuteDate: ''};
+
+const OSM_TAGS = {
+  nursing_home:[['amenity','nursing_home'],['amenity','social_facility']],
+  restaurant:[['amenity','restaurant'],['amenity','cafe'],['amenity','fast_food']],
+  retail:[['shop','clothes'],['shop','electronics'],['shop','hardware']],
+  bakery:[['shop','bakery']],
+  construction:[['craft','construction'],['craft','carpenter'],['craft','electrician'],['craft','plumber']],
+  hospital:[['amenity','hospital'],['amenity','clinic']],
+  hotel:[['tourism','hotel'],['tourism','guest_house']],
+  supermarket:[['shop','supermarket'],['shop','convenience']],
+  logistics:[['office','logistics'],['office','transport']],
+  it:[['office','it'],['office','software']],
+  transport:[['amenity','bus_station'],['office','transport']],
+  mechatroniker:[['craft','electrician'],['craft','electronics_repair'],['craft','hvac']],
+  bau:[['craft','construction'],['craft','carpenter'],['craft','electrician'],['craft','plumber'],['craft','painter'],['craft','roofer']],
+};
+
+const BL_BOX = {
+  'Baden-Württemberg':'47.5,7.5,49.8,10.5','Bayern':'47.3,9.0,50.6,13.9',
+  'Berlin':'52.3,13.1,52.7,13.8','Brandenburg':'51.4,11.3,53.6,14.8',
+  'Bremen':'53.0,8.5,53.2,8.9','Hamburg':'53.4,9.7,53.7,10.3',
+  'Hessen':'49.4,7.8,51.7,10.2','Mecklenburg-Vorpommern':'53.1,10.6,54.7,14.4',
+  'Niedersachsen':'51.3,6.7,53.9,11.6','Nordrhein-Westfalen':'50.3,5.9,52.5,9.5',
+  'Rheinland-Pfalz':'48.9,6.1,50.9,8.5','Saarland':'49.1,6.3,49.7,7.4',
+  'Sachsen':'50.2,11.9,51.7,15.0','Sachsen-Anhalt':'51.0,10.6,53.1,13.2',
+  'Schleswig-Holstein':'53.4,7.9,55.1,11.3','Thüringen':'50.2,9.9,51.7,12.7',
+  'Deutschlandweit':'47.3,5.9,55.1,15.0'
+};
+
+const BL_LABELS = {
+  nursing_home:'Pflegeheim',restaurant:'Gastronomie',retail:'Einzelhandel',
+  bakery:'Bäckerei',construction:'Bau/Handwerk',hospital:'Krankenhaus',
+  hotel:'Hotel',supermarket:'Supermarkt',logistics:'Logistik',it:'IT',
+  transport:'Transport',mechatroniker:'Mechatroniker',bau:'Bau'
+};
+
+const PORTALE = [
+  'https://www.gelbeseiten.de/suche/{branche}/{ort}',
+  'https://www.dasoertliche.de/themen/{branche}/{ort}',
+  'https://www.yelp.de/search?find_desc={branche}&find_loc={ort}',
+  'https://www.11880.com/suche/{branche}/{ort}',
+  'https://www.wlw.de/de/suche?q={branche}&region={ort}',
+  'https://www.firma.de/firmensuche/?q={branche}&l={ort}',
+  'https://www.kompass.com/a/suche.html?text={branche}&country=DE',
+  'https://www.northdata.de/Suche?q={branche}+{ort}',
+  'https://www.unternehmensregister.de/ureg/result.html;?submitaction=language&language=de',
+  'https://www.cylex.de/deutschland/{branche}.html',
+];
+
+let currentModus = 'tag';
+
+function setModus(modus) {
+  currentModus = modus;
+  const tag = document.getElementById('modus-tag');
+  const nacht = document.getElementById('modus-nacht');
+  if(modus === 'tag') {
+    tag.style.background = '#1a1a1a'; tag.style.color = '#fff'; tag.style.borderColor = '#1a1a1a';
+    nacht.style.background = '#fff'; nacht.style.color = '#1a1a1a'; nacht.style.borderColor = '#e0e0e0';
+    document.getElementById('s-anzahl').innerHTML = `
+      <option value="50">50 E-Mails (schnell ~5 Min)</option>
+      <option value="100" selected>100 E-Mails (~10 Min)</option>`;
+    document.getElementById('start-btn').innerHTML = '☀️ Tag-Suche starten';
+  } else {
+    nacht.style.background = '#1a1a1a'; nacht.style.color = '#fff'; nacht.style.borderColor = '#1a1a1a';
+    tag.style.background = '#fff'; tag.style.color = '#1a1a1a'; tag.style.borderColor = '#e0e0e0';
+    document.getElementById('s-anzahl').innerHTML = `
+      <option value="500" selected>500 E-Mails (~45 Min)</option>
+      <option value="300">300 E-Mails (~30 Min)</option>`;
+    document.getElementById('s-quelle').value = 'beide';
+    document.getElementById('start-btn').innerHTML = '🌙 Nacht-Suche starten';
+  }
+}
+
+function loadData() {
+  try { const d = localStorage.getItem(STORAGE_KEY); if(d) emails = JSON.parse(d); } catch(e){ emails=[]; }
+  try { const m = localStorage.getItem(STORAGE_META); if(m) meta = JSON.parse(m); } catch(e){}
+  const today = new Date().toISOString().split('T')[0];
+  if(meta.heuteDate !== today) { meta.heute = 0; meta.heuteDate = today; }
+  updateStats(); renderTable();
+}
+
+function saveData() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(emails)); } catch(e){}
+  try { localStorage.setItem(STORAGE_META, JSON.stringify(meta)); } catch(e){}
+  updateStats(); renderTable();
+}
+
+function updateStats() {
+  document.getElementById('st-total').textContent = emails.length.toLocaleString('de-DE');
+  document.getElementById('st-heute').textContent = (meta.heute||0).toLocaleString('de-DE');
+  document.getElementById('st-dup').textContent = (meta.dupSkipped||0).toLocaleString('de-DE');
+}
+
+function setProgress(label, pct, log) {
+  document.getElementById('prog-label').textContent = label;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  if(log) document.getElementById('log-text').textContent = log;
+}
+
+// E-Mails aus HTML extrahieren
+function extractEmails(html) {
+  const found = (html.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g) || [])
+    .filter(e => !e.match(/\.(png|jpg|svg|gif|css|js|woff)$/i) &&
+      !e.includes('example') && !e.includes('sentry') &&
+      !e.includes('schema') && !e.includes('@2x') &&
+      !e.includes('noreply') && !e.includes('no-reply'));
+  return [...new Set(found)];
+}
+
+// Website laden über Proxy
+async function fetchPage(url) {
+  for(const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url), {signal: AbortSignal.timeout(6000)});
+      if(!r.ok) continue;
+      const d = await r.json().catch(() => r.text());
+      const html = typeof d === 'string' ? d : (d.contents || d.body || '');
+      if(html.length > 200) return html;
+    } catch(e) { continue; }
+  }
+  return '';
+}
+
+// E-Mail von Firmenwebsite suchen
+async function getEmailFromWebsite(website, firma) {
+  if(!website) return null;
+  const domain = website.replace(/^https?:\/\//, '').split('/')[0];
+  const pages = [
+    website,
+    'https://' + domain + '/impressum',
+    'https://' + domain + '/kontakt',
+    'https://' + domain + '/impressum.html',
+    'https://' + domain + '/ueber-uns',
+    'https://' + domain + '/team',
+    'https://' + domain + '/ansprechpartner',
+  ];
+  for(const page of pages) {
+    const html = await fetchPage(page);
+    if(!html) continue;
+    const found = extractEmails(html);
+    if(found.length > 0) {
+      const pref = found.find(e => e.match(/^(info|kontakt|leitung|verwaltung|gf|direktion)@/i));
+      return pref || found[0];
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return null;
+}
+
+// OSM Firmen laden
+async function fetchOSM(brancheKey, bundesland, limit) {
+  const bbox = BL_BOX[bundesland];
+  if(!bbox) return [];
+  const tags = OSM_TAGS[brancheKey] || [];
+  const q = tags.map(([k,v]) => `node["${k}"="${v}"](${bbox});way["${k}"="${v}"](${bbox});`).join('\n');
+  try {
+    const resp = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: 'data=' + encodeURIComponent(`[out:json][timeout:30];(\n${q}\n);out center ${limit};`)
+    });
+    const data = await resp.json();
+    return (data.elements || []).map(el => {
+      const t = el.tags || {};
+      return {
+        firma: t.name || t['name:de'] || '',
+        email: t.email || t['contact:email'] || '',
+        website: t.website || t['contact:website'] || '',
+        telefon: t.phone || t['contact:phone'] || '',
+      };
+    }).filter(f => f.firma);
+  } catch(e) { return []; }
+}
+
+// Deutsche Verzeichnisse durchsuchen
+async function fetchVerzeichnisse(brancheLabel, bundesland) {
+  const results = [];
+  const verzeichnisse = [
+    `https://www.gelbeseiten.de/suche/${encodeURIComponent(brancheLabel)}/${encodeURIComponent(bundesland)}`,
+    `https://www.dasoertliche.de/themen/${encodeURIComponent(brancheLabel)}/${encodeURIComponent(bundesland)}`,
+    `https://www.11880.com/suche/${encodeURIComponent(brancheLabel)}/${encodeURIComponent(bundesland)}`,
+    `https://www.cylex.de/deutschland/${encodeURIComponent(brancheLabel)}.html`,
+    `https://www.wlw.de/de/suche?q=${encodeURIComponent(brancheLabel)}&region=${encodeURIComponent(bundesland)}`,
+    `https://www.firma.de/firmensuche/?q=${encodeURIComponent(brancheLabel)}&l=${encodeURIComponent(bundesland)}`,
+    `https://www.yelp.de/search?find_desc=${encodeURIComponent(brancheLabel)}&find_loc=${encodeURIComponent(bundesland)}`,
+    `https://www.northdata.de/Suche?q=${encodeURIComponent(brancheLabel)}+${encodeURIComponent(bundesland)}`,
+    `https://www.handelsregister.de/rp_web/erweitertesuche.xhtml?schlagwoerter=${encodeURIComponent(brancheLabel)}&schlagwortOptionen=2`,
+    `https://www.unternehmensregister.de/ureg/result.html?submitaction=language&language=de`,
+    `https://de.indeed.com/jobs?q=${encodeURIComponent(brancheLabel)}&l=${encodeURIComponent(bundesland)}`,
+    `https://www.stepstone.de/jobs/${encodeURIComponent(brancheLabel)}/${encodeURIComponent(bundesland)}`,
+    `https://www.ausbildung.de/suche/?q=${encodeURIComponent(brancheLabel)}&location=${encodeURIComponent(bundesland)}`,
+    `https://www.azubi.de/ausbildungsplatz/${encodeURIComponent(brancheLabel)}/${encodeURIComponent(bundesland)}`,
+    `https://www.meinestadt.de/${encodeURIComponent(bundesland.toLowerCase())}/firmen/${encodeURIComponent(brancheLabel)}`,
+    `https://www.stadtbranchenbuch.com/${encodeURIComponent(bundesland.toLowerCase())}/${encodeURIComponent(brancheLabel)}`,
+    `https://www.branchenbuch.de/search/?q=${encodeURIComponent(brancheLabel)}&location=${encodeURIComponent(bundesland)}`,
+    `https://www.herold.at/gelbe-seiten/DE/${encodeURIComponent(bundesland)}/${encodeURIComponent(brancheLabel)}/`,
+    `https://www.europages.de/companies/${encodeURIComponent(bundesland)}/${encodeURIComponent(brancheLabel)}.html`,
+    `https://www.kompass.com/a/suche.html?text=${encodeURIComponent(brancheLabel)}&country=DE`,
+  ];
+
+  for(const url of verzeichnisse) {
+    const html = await fetchPage(url);
+    if(!html) continue;
+    const emails = extractEmails(html);
+    // Firmennamen aus HTML extrahieren
+    const namePatterns = [
+      /"name"\s*:\s*"([^"]{3,60})"/g,
+      /class="[^"]*(?:company|firm|name|title)[^"]*"[^>]*>([^<]{3,60})</g,
+      /<h[23][^>]*>([^<]{3,60})<\/h[23]>/g,
+    ];
+    const firmen = new Set();
+    for(const pat of namePatterns) {
+      [...html.matchAll(pat)].forEach(m => {
+        const n = (m[1]||'').trim();
+        if(n.length > 3 && n.length < 60 && !n.includes('http') && !n.includes('{') && !n.includes('<')) firmen.add(n);
+      });
+    }
+    emails.forEach(email => {
+      const domain = email.split('@')[1];
+      const firma = [...firmen].find(f => domain && f.toLowerCase().includes(domain.split('.')[0].toLowerCase())) || domain || 'Unbekannt';
+      results.push({firma, email});
+    });
+    await new Promise(r => setTimeout(r, 150));
+  }
+  return results;
+}
+
+async function startSuche() {
+  const branche = document.getElementById('s-branche').value;
+  const bundesland = document.getElementById('s-bundesland').value;
+  const ziel = parseInt(document.getElementById('s-anzahl').value) || 100;
+  const quelle = document.getElementById('s-quelle').value;
+
+  if(!branche) { alert('⚠️ Bitte erst eine Branche auswählen!'); return; }
+  if(!bundesland) { alert('⚠️ Bitte erst ein Bundesland auswählen!'); return; }
+
+  const btn = document.getElementById('start-btn');
+  btn.innerHTML = '<span class="spin"></span>Läuft – bitte warten...';
+  btn.disabled = true;
+  document.getElementById('progress-wrap').style.display = 'block';
+  setProgress('Starte Suche...', 2, 'Verbinde mit OpenStreetMap...');
+
+  const existingEmails = new Set(emails.map(e => e.email.toLowerCase()));
+  let neuGefunden = 0;
+  let dupSkipped = 0;
+  const brancheLabel = BL_LABELS[branche] || branche;
+  const heute = new Date().toISOString().split('T')[0];
+
+  // ── Schritt 1: OSM Firmen laden ──
+  setProgress('OSM: Firmen laden...', 5, `Suche ${brancheLabel} in ${bundesland}...`);
+  const osmFirmen = await fetchOSM(branche, bundesland, 500);
+  setProgress('OSM: Firmen geladen', 15, `${osmFirmen.length} Firmen gefunden – suche E-Mails...`);
+
+  // ── Schritt 2: E-Mails aus OSM direkt ──
+  for(let i = 0; i < osmFirmen.length && neuGefunden < ziel; i++) {
+    const f = osmFirmen[i];
+    setProgress(
+      `Firmen durchsuchen: ${i+1}/${Math.min(osmFirmen.length, ziel*2)}`,
+      15 + Math.round(i / Math.min(osmFirmen.length, ziel*2) * 40),
+      `${f.firma.slice(0,40)}...`
+    );
+
+    // E-Mail direkt in OSM vorhanden?
+    if(f.email) {
+      const emailLow = f.email.toLowerCase();
+      if(!existingEmails.has(emailLow)) {
+        emails.push({firma: f.firma, email: f.email, branche: brancheLabel, bundesland, datum: heute});
+        existingEmails.add(emailLow);
+        neuGefunden++;
+        meta.heute = (meta.heute || 0) + 1;
+      } else { dupSkipped++; }
+    }
+    // Website besuchen für E-Mail
+    else if(f.website && neuGefunden < ziel) {
+      const email = await getEmailFromWebsite(f.website, f.firma);
+      if(email) {
+        const emailLow = email.toLowerCase();
+        if(!existingEmails.has(emailLow)) {
+          emails.push({firma: f.firma, email, branche: brancheLabel, bundesland, datum: heute});
+          existingEmails.add(emailLow);
+          neuGefunden++;
+          meta.heute = (meta.heute || 0) + 1;
+        } else { dupSkipped++; }
+      }
+    }
+    if(i % 5 === 0) { saveData(); }
+    await new Promise(r => setTimeout(r, 100));
+  }
+
+  // ── Schritt 3: Verzeichnisse durchsuchen ──
+  if(quelle === 'beide' || neuGefunden < ziel) {
+    setProgress('Verzeichnisse durchsuchen...', 60, 'Gelbe Seiten, Das Örtliche, 11880...');
+    const vResults = await fetchVerzeichnisse(brancheLabel, bundesland);
+    setProgress('Verzeichnisse durchsucht', 85, `${vResults.length} E-Mails aus Verzeichnissen`);
+
+    for(const r of vResults) {
+      if(neuGefunden >= ziel) break;
+      const emailLow = r.email.toLowerCase();
+      if(!existingEmails.has(emailLow)) {
+        emails.push({firma: r.firma, email: r.email, branche: brancheLabel, bundesland, datum: heute});
+        existingEmails.add(emailLow);
+        neuGefunden++;
+        meta.heute = (meta.heute || 0) + 1;
+      } else { dupSkipped++; }
+    }
+  }
+
+  meta.dupSkipped = (meta.dupSkipped || 0) + dupSkipped;
+  saveData();
+  setProgress('✅ Fertig!', 100, `✓ ${neuGefunden} neue E-Mails gesammelt · ${dupSkipped} Duplikate übersprungen`);
+  const modusLabel = currentModus === 'tag' ? '☀️ Tag-Suche starten' : '🌙 Nacht-Suche starten';
+  btn.innerHTML = modusLabel;
+  btn.disabled = false;
+}
+
+function renderTable() {
+  const search = (document.getElementById('f-search') || {value:''}).value.toLowerCase();
+  const filtered = emails.filter(e =>
+    !search || e.firma.toLowerCase().includes(search) || e.email.toLowerCase().includes(search)
+  );
+  const el = document.getElementById('table-wrap');
+  if(!filtered.length) {
+    el.innerHTML = '<div class="empty"><i class="ti ti-mail" style="font-size:32px;display:block;margin-bottom:8px;color:#ccc"></i>Noch keine E-Mails gesammelt.</div>';
+    return;
+  }
+  const today = new Date().toISOString().split('T')[0];
+  el.innerHTML = `<table class="email-table">
+    <thead><tr>
+      <th>#</th>
+      <th>Firmenname</th>
+      <th>E-Mail</th>
+      <th>Branche</th>
+      <th>Datum</th>
+    </tr></thead>
+    <tbody>
+    ${filtered.slice(0, 200).map((e, i) => `<tr>
+      <td style="color:#999;font-size:12px">${i+1}</td>
+      <td style="font-weight:500">${e.firma}</td>
+      <td><a href="mailto:${e.email}" style="color:#185fa5">${e.email}</a></td>
+      <td><span style="font-size:11px;color:#666">${e.branche||''}</span></td>
+      <td>${e.datum===today ? '<span class="badge-new">Heute</span>' : `<span style="font-size:11px;color:#999">${e.datum||''}</span>`}</td>
+    </tr>`).join('')}
+    </tbody>
+  </table>
+  ${filtered.length > 200 ? `<div style="text-align:center;padding:1rem;font-size:12px;color:#666">+ ${(filtered.length-200).toLocaleString('de-DE')} weitere – im CSV Export alle enthalten</div>` : ''}`;
+}
+
+function exportCSV() {
+  if(!emails.length) { alert('Keine E-Mails zum Exportieren.'); return; }
+  // Nur Firmenname und E-Mail – getrennt durch Semikolon für Excel
+  const rows = ['Firmenname;E-Mail;Branche;Datum', ...emails.map(e =>
+    `"${(e.firma||'').replace(/"/g,'""')}";"${(e.email||'').replace(/"/g,'""')}";"${(e.branche||'').replace(/"/g,'""')}";"${e.datum||''}"`
+  )];
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + rows.join('\n')], {type:'text/csv;charset=utf-8;'}));
+  a.download = `emails_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+function clearAll() {
+  if(confirm('Alle E-Mails löschen?')) {
+    emails = [];
+    meta.heute = 0;
+    meta.dupSkipped = 0;
+    saveData();
+  }
+}
+
+loadData();
+</script>
+</body>
+</html>
