@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Mail Sammler Deutschland</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f5f5f3;color:#1a1a1a;font-size:14px}
+.app{max-width:800px;margin:0 auto;padding:1.5rem 1rem}
+h1{font-size:22px;font-weight:700;margin-bottom:1.5rem;display:flex;align-items:center;gap:8px}
+.card{background:#fff;border:1px solid #e8e8e8;border-radius:12px;padding:1.25rem;margin-bottom:1rem}
+.branchen-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.branche-btn{padding:10px 8px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:12px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a1a;text-align:center;transition:all .15s}
+.branche-btn:hover{border-color:#1a1a1a;background:#f5f5f3}
+.branche-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.anzahl-row{display:flex;gap:8px;margin-bottom:16px}
+.anzahl-btn{flex:1;padding:10px;border:1.5px solid #e0e0e0;border-radius:10px;font-size:13px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a1a;text-align:center}
+.anzahl-btn.active{background:#1a1a1a;color:#fff;border-color:#1a1a1a}
+.start-btn{background:#1a1a1a;color:#fff;border:none;border-radius:10px;padding:14px;width:100%;font-size:15px;font-weight:600;cursor:pointer}
+.start-btn:disabled{opacity:.5;cursor:not-allowed}
+.progress-bar{height:8px;background:#e8e8e8;border-radius:999px;overflow:hidden;margin:10px 0}
+.progress-fill{height:100%;background:#1a1a1a;border-radius:999px;transition:width .3s}
+.log{background:#f5f5f3;border-radius:8px;padding:10px 14px;font-size:12px;color:#666;margin-top:8px;min-height:36px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:1rem}
+.stat{background:#fff;border:1px solid #e8e8e8;border-radius:10px;padding:12px;text-align:center}
+.stat-val{font-size:26px;font-weight:700}
+.stat-label{font-size:11px;color:#666;margin-top:2px}
+table{width:100%;border-collapse:collapse}
+th{background:#f5f5f3;padding:10px 12px;text-align:left;font-size:12px;color:#666;font-weight:600}
+td{padding:10px 12px;border-bottom:1px solid #f0f0f0;font-size:13px}
+tr:hover td{background:#fafafa}
+a{color:#185fa5;text-decoration:none}
+.badge{background:#eaf3de;color:#27500a;font-size:11px;padding:2px 7px;border-radius:999px;font-weight:500}
+.btn-csv{background:#eaf3de;color:#27500a;border:1px solid #a8dfc0;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer;font-weight:500}
+.btn-del{background:#fcebeb;color:#791f1f;border:1px solid #f0b0b0;border-radius:8px;padding:7px 14px;font-size:12px;cursor:pointer}
+.hint{font-size:11px;color:#666;background:#f0f7ff;border:1px solid #c8e0f8;border-radius:8px;padding:8px 12px;margin-bottom:12px;display:flex;align-items:center;gap:6px}
+@media(max-width:500px){.branchen-grid{grid-template-columns:repeat(2,1fr)}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="app">
+<h1><i class="ti ti-mail-search" style="font-size:24px"></i> E-Mail Sammler – Deutschland</h1>
+
+<div class="card">
+  <div style="font-size:13px;font-weight:600;margin-bottom:10px">🗺️ Region</div>
+  <div style="background:#1a1a1a;color:#fff;border-radius:10px;padding:12px;text-align:center;font-weight:600;font-size:14px;margin-bottom:16px">
+    🇩🇪 Ganz Deutschland
+  </div>
+
+  <div style="font-size:13px;font-weight:600;margin-bottom:10px">🏢 Branche wählen</div>
+  <div class="branchen-grid" id="branchen-grid"></div>
+
+  <div style="font-size:13px;font-weight:600;margin-bottom:10px">📊 Anzahl E-Mails</div>
+  <div class="anzahl-row">
+    <button class="anzahl-btn" onclick="setAnzahl(50,this)">50</button>
+    <button class="anzahl-btn active" onclick="setAnzahl(100,this)">100</button>
+    <button class="anzahl-btn" onclick="setAnzahl(200,this)">200</button>
+  </div>
+
+  <div class="hint"><i class="ti ti-check" style="font-size:13px;color:#1d9e75"></i>Bereits gesammelte E-Mails werden automatisch übersprungen – nie doppelt!</div>
+
+  <button class="start-btn" id="start-btn" onclick="startSuche()">
+    🚀 E-Mails sammeln starten
+  </button>
+  <div id="progress-wrap" style="display:none;margin-top:10px">
+    <div style="display:flex;justify-content:space-between;font-size:12px;color:#666;margin-bottom:2px">
+      <span id="prog-label">Suche läuft...</span><span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="prog-fill" style="width:0%"></div></div>
+    <div class="log" id="log-text">Initialisiere...</div>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat"><div class="stat-val" id="st-total">0</div><div class="stat-label">E-Mails gesamt</div></div>
+  <div class="stat"><div class="stat-val" id="st-heute">0</div><div class="stat-label">Heute gesammelt</div></div>
+  <div class="stat"><div class="stat-val" id="st-dup">0</div><div class="stat-label">Duplikate übersprungen</div></div>
+</div>
+
+<div class="card">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+    <strong>Gesammelte E-Mails</strong>
+    <div style="display:flex;gap:8px">
+      <input type="text" id="f-search" placeholder="Suchen..." oninput="renderTable()" style="height:34px;padding:0 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;width:150px"/>
+      <button class="btn-csv" onclick="exportCSV()"><i class="ti ti-download" style="margin-right:4px"></i>CSV</button>
+      <button class="btn-del" onclick="clearAll()"><i class="ti ti-trash" style="margin-right:4px"></i>Löschen</button>
+    </div>
+  </div>
+  <div id="table-wrap">
+    <div style="text-align:center;padding:2.5rem;color:#999;font-size:13px">
+      <i class="ti ti-mail" style="font-size:32px;display:block;margin-bottom:8px;color:#ddd"></i>
+      Noch keine E-Mails. Branche wählen und starten!
+    </div>
+  </div>
+</div>
+</div>
+
+<script>
+const BRANCHEN = [
+  {key:'nursing_home', label:'🏥 Pflegeheim'},
+  {key:'restaurant', label:'🍽️ Gastronomie'},
+  {key:'bakery', label:'🥐 Bäckerei'},
+  {key:'construction', label:'🏗️ Bau/Handwerk'},
+  {key:'hospital', label:'🏨 Krankenhaus'},
+  {key:'hotel', label:'🛏️ Hotel'},
+  {key:'supermarket', label:'🛒 Supermarkt'},
+  {key:'logistics', label:'🚛 Logistik'},
+  {key:'it', label:'💻 IT/Software'},
+  {key:'transport', label:'🚌 Transport'},
+  {key:'mechatroniker', label:'⚙️ Mechatroniker'},
+  {key:'retail', label:'🛍️ Einzelhandel'},
+  {key:'pharmacy', label:'💊 Apotheke'},
+  {key:'dentist', label:'🦷 Zahnarzt'},
+  {key:'doctor', label:'👨‍⚕️ Arztpraxis'},
+  {key:'kindergarten', label:'👶 Kita/Kindergarten'},
+  {key:'school', label:'🏫 Schule/Bildung'},
+  {key:'cleaning', label:'🧹 Reinigung'},
+  {key:'lawyer', label:'⚖️ Rechtsanwalt'},
+  {key:'insurance', label:'📋 Versicherung'},
+  {key:'car_repair', label:'🔧 Autowerkstatt'},
+  {key:'real_estate', label:'🏠 Immobilien'},
+  {key:'fitness', label:'💪 Fitnessstudio'},
+  {key:'hairdresser', label:'✂️ Friseur'},
+];
+
+const OSM_TAGS = {
+  nursing_home:[['amenity','nursing_home'],['amenity','social_facility']],
+  restaurant:[['amenity','restaurant'],['amenity','cafe'],['amenity','fast_food']],
+  bakery:[['shop','bakery']],
+  construction:[['craft','construction'],['craft','carpenter'],['craft','electrician'],['craft','plumber'],['craft','painter']],
+  hospital:[['amenity','hospital'],['amenity','clinic']],
+  hotel:[['tourism','hotel'],['tourism','guest_house']],
+  supermarket:[['shop','supermarket'],['shop','convenience']],
+  logistics:[['office','logistics'],['office','transport']],
+  it:[['office','it'],['office','software'],['office','company']],
+  transport:[['amenity','bus_station'],['office','transport']],
+  mechatroniker:[['craft','electrician'],['craft','electronics_repair'],['craft','hvac']],
+  retail:[['shop','clothes'],['shop','electronics'],['shop','furniture'],['shop','hardware'],['shop','mobile_phone']],
+  pharmacy:[['amenity','pharmacy']],
+  dentist:[['amenity','dentist']],
+  doctor:[['amenity','doctors'],['amenity','clinic']],
+  kindergarten:[['amenity','kindergarten']],
+  school:[['amenity','school'],['amenity','college'],['amenity','university']],
+  cleaning:[['craft','cleaning']],
+  lawyer:[['office','lawyer'],['office','notary']],
+  insurance:[['office','insurance']],
+  car_repair:[['shop','car_repair'],['craft','car_repair']],
+  real_estate:[['office','estate_agent']],
+  fitness:[['leisure','fitness_centre'],['leisure','sports_centre']],
+  hairdresser:[['shop','hairdresser'],['shop','beauty']],
+};
+
+// Deutschland in Regionen aufgeteilt für zuverlässigere OSM-Abfragen
+const REGIONEN = [
+  '47.5,7.5,49.8,10.5',  // Baden-Württemberg
+  '47.3,9.0,50.6,13.9',  // Bayern
+  '52.3,13.1,52.7,13.8', // Berlin
+  '50.3,5.9,52.5,9.5',   // NRW
+  '49.4,7.8,51.7,10.2',  // Hessen
+  '51.3,6.7,53.9,11.6',  // Niedersachsen
+  '53.4,9.7,53.7,10.3',  // Hamburg
+  '50.2,11.9,51.7,15.0', // Sachsen
+  '48.9,6.1,50.9,8.5',   // Rheinland-Pfalz
+  '50.2,9.9,51.7,12.7',  // Thüringen
+];
+
+async function fetchOSM(brancheKey, anzahl) {
+  const tags = OSM_TAGS[brancheKey] || [];
+  let alleFirmen = [];
+  
+  // Mehrere Regionen nacheinander abfragen bis genug gefunden
+  for(const bbox of REGIONEN) {
+    if(alleFirmen.length >= anzahl * 3) break;
+    
+    const tagQ = tags.map(([k,v]) =>
+      `node["${k}"="${v}"](${bbox});way["${k}"="${v}"](${bbox});`
+    ).join('\n');
+    const query = `[out:json][timeout:30];(\n${tagQ}\n);out center ${Math.ceil(anzahl/2)};`;
+    
+    try {
+      const resp = await fetch('https://overpass-api.de/api/interpreter', {
+        method: 'POST',
+        body: 'data=' + encodeURIComponent(query),
+        signal: AbortSignal.timeout(35000)
+      });
+      if(!resp.ok) { await new Promise(r=>setTimeout(r,2000)); continue; }
+      const data = await resp.json();
+      const firmen = (data.elements || []).map(el => {
+        const t = el.tags || {};
+        return {
+          firma: t.name || t['name:de'] || '',
+          email: t.email || t['contact:email'] || '',
+          website: t.website || t['contact:website'] || '',
+        };
+      }).filter(f => f.firma);
+      alleFirmen = [...alleFirmen, ...firmen];
+    } catch(e) { 
+      await new Promise(r=>setTimeout(r,2000));
+      continue; 
+    }
+    await new Promise(r=>setTimeout(r,1000));
+  }
+  return alleFirmen;
+}
+
+let emails = [];
+let meta = {heute:0, dup:0, heuteDate:''};
+let selectedBranche = null;
+let selectedAnzahl = 100;
+const SK = 'email_sammler_v2';
+const MK = 'email_meta_v2';
+
+// Branchen rendern
+function renderBranchen() {
+  const grid = document.getElementById('branchen-grid');
+  grid.innerHTML = BRANCHEN.map(b =>
+    `<button class="branche-btn" id="b-${b.key}" onclick="selectBranche('${b.key}',this)">${b.label}</button>`
+  ).join('');
+}
+
+function selectBranche(key, btn) {
+  document.querySelectorAll('.branche-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedBranche = key;
+}
+
+function setAnzahl(n, btn) {
+  document.querySelectorAll('.anzahl-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  selectedAnzahl = n;
+}
+
+function loadData() {
+  try { const d = localStorage.getItem(SK); if(d) emails = JSON.parse(d); } catch(e){}
+  try { const m = localStorage.getItem(MK); if(m) meta = JSON.parse(m); } catch(e){}
+  const today = new Date().toISOString().split('T')[0];
+  if(meta.heuteDate !== today) { meta.heute = 0; meta.heuteDate = today; }
+  updateStats(); renderTable();
+}
+
+function saveData() {
+  try { localStorage.setItem(SK, JSON.stringify(emails)); } catch(e){}
+  try { localStorage.setItem(MK, JSON.stringify(meta)); } catch(e){}
+  updateStats(); renderTable();
+}
+
+function updateStats() {
+  document.getElementById('st-total').textContent = emails.length.toLocaleString('de-DE');
+  document.getElementById('st-heute').textContent = (meta.heute||0).toLocaleString('de-DE');
+  document.getElementById('st-dup').textContent = (meta.dup||0).toLocaleString('de-DE');
+}
+
+function setProgress(label, pct, log) {
+  document.getElementById('prog-label').textContent = label;
+  document.getElementById('prog-pct').textContent = pct + '%';
+  document.getElementById('prog-fill').style.width = pct + '%';
+  if(log) document.getElementById('log-text').textContent = log;
+}
+
+function extractEmails(html) {
+  const found = (html.match(/[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}/g)||[])
+    .filter(e => !e.match(/\.(png|jpg|svg|gif|css|js|woff)$/i) &&
+      !e.includes('example') && !e.includes('sentry') && !e.includes('noreply') &&
+      !e.includes('schema') && !e.includes('wixpress') && !e.includes('no-reply'));
+  return [...new Set(found.map(e => e.toLowerCase()))];
+}
+
+async function fetchPage(url) {
+  for(const proxy of PROXIES) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url), {signal: AbortSignal.timeout(7000)});
+      if(!r.ok) continue;
+      const d = await r.json().catch(() => r.text());
+      const html = typeof d === 'string' ? d : (d.contents || d.body || '');
+      if(html.length > 100) return html;
+    } catch(e) { continue; }
+  }
+  return '';
+}
+
+async function getEmailFromWebsite(website) {
+  if(!website) return null;
+  if(!website.startsWith('http')) website = 'https://' + website;
+  const domain = website.replace(/^https?:\/\//, '').split('/')[0];
+  const pages = [
+    website,
+    `https://${domain}/impressum`,
+    `https://${domain}/impressum.html`,
+    `https://${domain}/kontakt`,
+  ];
+  for(const url of pages) {
+    const html = await fetchPage(url);
+    if(!html) continue;
+    const emails = extractEmails(html);
+    if(emails.length > 0) {
+      // info@ bevorzugen, dann kontakt@, dann erste gefundene
+      const pref = emails.find(e => e.match(/^(info|kontakt|mail|service|anfrage|verwaltung)@/i));
+      return pref || emails[0];
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  return null;
+}
+
+const PROXIES = ['https://api.allorigins.win/get?url=','https://corsproxy.io/?'];
+
+async function startSuche() {
+  if(!selectedBranche) { alert('Bitte eine Branche auswählen!'); return; }
+
+  const btn = document.getElementById('start-btn');
+  btn.disabled = true; btn.textContent = '⏳ Läuft...';
+  document.getElementById('progress-wrap').style.display = 'block';
+
+  const existingEmails = new Set(emails.map(e => e.email.toLowerCase()));
+  let neu = 0;
+  const heute = new Date().toISOString().split('T')[0];
+  const brancheLabel = BRANCHEN.find(b => b.key === selectedBranche)?.label || selectedBranche;
+
+  // OSM laden
+  setProgress('Firmen laden...', 5, `Suche ${brancheLabel} in ganz Deutschland...`);
+  const firmen = await fetchOSM(selectedBranche, selectedAnzahl);
+  setProgress('Firmen geladen', 15, `${firmen.length} Firmen gefunden – suche E-Mails...`);
+
+  for(let i = 0; i < firmen.length && neu < selectedAnzahl; i++) {
+    const f = firmen[i];
+    const pct = 15 + Math.round(i / Math.min(firmen.length, selectedAnzahl * 3) * 80);
+    setProgress(`${i+1}/${firmen.length} – ${f.firma.slice(0,35)}`, Math.min(pct, 95), f.firma);
+
+    // Direkte E-Mail aus OSM
+    if(f.email && !existingEmails.has(f.email.toLowerCase())) {
+      existingEmails.add(f.email.toLowerCase());
+      emails.push({firma:f.firma, email:f.email, branche:brancheLabel, datum:heute});
+      meta.heute = (meta.heute||0) + 1;
+      neu++;
+      saveData();
+    } else if(f.email) {
+      meta.dup = (meta.dup||0) + 1;
+    } else if(f.website && neu < selectedAnzahl) {
+      // Website besuchen
+      const email = await getEmailFromWebsite(f.website);
+      if(email && !existingEmails.has(email)) {
+        existingEmails.add(email);
+        emails.push({firma:f.firma, email, branche:brancheLabel, datum:heute});
+        meta.heute = (meta.heute||0) + 1;
+        neu++;
+        saveData();
+      }
+    }
+    await new Promise(r => setTimeout(r, 150));
+  }
+
+  setProgress('✅ Fertig!', 100, `${neu} neue E-Mails gesammelt`);
+  btn.disabled = false; btn.textContent = '🚀 E-Mails sammeln starten';
+  saveData();
+}
+
+function renderTable() {
+  const search = (document.getElementById('f-search')||{value:''}).value.toLowerCase();
+  const filtered = emails.filter(e =>
+    !search || e.firma.toLowerCase().includes(search) || e.email.toLowerCase().includes(search)
+  );
+  const el = document.getElementById('table-wrap');
+  if(!filtered.length) {
+    el.innerHTML = '<div style="text-align:center;padding:2rem;color:#999;font-size:13px"><i class="ti ti-mail" style="font-size:28px;display:block;margin-bottom:8px;color:#ddd"></i>Noch keine E-Mails.</div>';
+    return;
+  }
+  const shown = filtered.slice(0, 100);
+  const rest = filtered.length - shown.length;
+  const today = new Date().toISOString().split('T')[0];
+  el.innerHTML = `<table><thead><tr><th>#</th><th>Firmenname</th><th>E-Mail</th><th>Branche</th><th>Datum</th></tr></thead><tbody>` +
+    shown.map((e,i) => `<tr>
+      <td style="color:#999;font-size:12px">${i+1}</td>
+      <td style="font-weight:500">${e.firma}</td>
+      <td><a href="mailto:${e.email}">${e.email}</a></td>
+      <td><span class="badge">${e.branche||''}</span></td>
+      <td style="font-size:12px;color:${e.datum===today?'#27500a':'#999'}">${e.datum===today?'Heute':e.datum||''}</td>
+    </tr>`).join('') +
+    `</tbody></table>` +
+    (rest > 0 ? `<div style="text-align:center;padding:.75rem;font-size:12px;color:#999">+ ${rest.toLocaleString('de-DE')} weitere – im CSV Export alle enthalten</div>` : '');
+}
+
+function exportCSV() {
+  if(!emails.length) { alert('Keine E-Mails zum Exportieren.'); return; }
+  const rows = ['Firmenname;E-Mail;Branche;Datum', ...emails.map(e =>
+    `"${(e.firma||'').replace(/"/g,'""')}";"${(e.email||'').replace(/"/g,'""')}";"${(e.branche||'').replace(/"/g,'""')}";"${e.datum||''}"`
+  )];
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['\uFEFF' + rows.join('\n')], {type:'text/csv;charset=utf-8;'}));
+  a.download = `emails_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+function clearAll() {
+  if(confirm('Alle E-Mails löschen?')) {
+    emails = []; meta.heute = 0; meta.dup = 0;
+    saveData();
+  }
+}
+
+renderBranchen();
+loadData();
+</script>
+</body>
+</html>
